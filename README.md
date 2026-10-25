@@ -22,6 +22,10 @@ GitHub 下载与 Git Clone 加速聚合站。纯前端单文件，零依赖，�
 
 也支持直接回车或粘贴后自动解析。
 
+
+## 部署提示
+[https://github.com/zhi-xiaoer/GitHub-Sped-Aggregation-Station/wiki/部署提示](https://github.com/zhi-xiaoer/GitHub-Sped-Aggregation-Station/wiki/%E9%83%A8%E7%BD%B2%E6%8F%90%E7%A4%BA)
+
 ---
 
 ## 支持的链接
