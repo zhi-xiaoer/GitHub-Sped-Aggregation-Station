@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub-Sped-Aggregation-Station</title>
+<style>
+  :root {
+    --bg:#ffffff; --fg:#0f172a; --card:#f8fafc; --card2:#ffffff;
+    --border:#e2e8f0; --primary:#2563eb; --primary-soft:rgba(37,99,235,.08);
+    --success:#16a34a; --warn:#d97706; --muted:#64748b;
+    --radius:10px; --shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  [data-theme="dark"] {
+    --bg:#0f172a; --fg:#f8fafc; --card:#1e293b; --card2:#1a2537;
+    --border:#334155; --primary:#3b82f6; --primary-soft:rgba(59,130,246,.14);
+    --success:#22c55e; --warn:#f59e0b; --muted:#94a3b8;
+    --shadow:0 1px 3px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;
+    background:var(--bg);color:var(--fg);line-height:1.6;min-height:100vh;
+    transition:background .2s,color .2s;
+  }
+  .container{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0 20px;border-bottom:1px solid var(--border);margin-bottom:22px}
+  .logo{display:flex;align-items:center;gap:11px}
+  .logo-icon{width:38px;height:38px;border-radius:10px;background:var(--primary);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .logo-title{font-size:19px;font-weight:700;letter-spacing:-.2px}
+  .logo-sub{font-size:12px;color:var(--muted)}
+  .theme-btn{background:var(--card);border:1px solid var(--border);color:var(--fg);
+    border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px}
+  .theme-btn:hover{background:var(--primary-soft)}
+
+  .input-section{background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:18px;margin-bottom:20px}
+  .input-row{display:flex;gap:10px;flex-wrap:wrap}
+  #urlInput{flex:1;min-width:280px;padding:12px 14px;border:1px solid var(--border);
+    border-radius:8px;background:var(--bg);color:var(--fg);font-size:14px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;outline:none}
+  #urlInput:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+  .btn{padding:12px 22px;border:none;border-radius:8px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:background .15s;white-space:nowrap}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{filter:brightness(1.08)}
+  .tips{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.7}
+  .tips b{color:var(--fg);font-weight:600}
+
+  .detect-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .detect-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .kind-badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;
+    background:var(--primary);color:#fff}
+  .detect-title{font-size:15px;font-weight:700;font-family:ui-monospace,monospace}
+  .detect-url{font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);
+    word-break:break-all;background:var(--card2);border:1px solid var(--border);
+    padding:8px 11px;border-radius:7px;display:flex;align-items:center;gap:10px;margin-top:4px}
+  .detect-url span{flex:1}
+  .detect-arrow{font-size:11px;font-weight:700;color:var(--primary);
+    margin:8px 0 2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .detect-arrow code{font-family:ui-monospace,monospace;font-size:11px;color:var(--fg);
+    background:var(--primary-soft);padding:2px 8px;border-radius:4px;word-break:break-all}
+
+  .group{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:13px 16px;border-bottom:1px solid var(--border);background:var(--card2);
+    flex-wrap:wrap}
+  .group-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .group-sub{font-size:12px;font-weight:500;color:var(--muted);background:var(--bg);
+    padding:2px 9px;border-radius:20px;border:1px solid var(--border)}
+  .group-actions{display:flex;align-items:center;gap:10px}
+  .count{font-size:12px;color:var(--muted)}
+  .rows{display:flex;flex-direction:column}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 16px;
+    border-bottom:1px solid var(--border);transition:background .12s}
+  .row:last-child{border-bottom:none}
+  .row:hover{background:var(--primary-soft)}
+  .badge{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;flex-shrink:0}
+  .t-cdn{background:rgba(217,119,6,.16);color:var(--warn)}
+  .t-proxy{background:rgba(37,99,235,.14);color:var(--primary)}
+  .t-git{background:rgba(22,163,74,.14);color:var(--success)}
+  .row-main{flex:1;min-width:0}
+  .row-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .row-note{font-size:11px;font-weight:400;color:var(--muted)}
+  .row-url,.cmd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    color:var(--muted);word-break:break-all;margin-top:2px}
+  .cmd{color:var(--fg);background:var(--card2);border:1px solid var(--border);
+    padding:6px 10px;border-radius:6px;margin-top:4px;display:inline-block;max-width:100%}
+  .mini-btn{padding:7px 13px;font-size:12px;font-weight:600;border-radius:6px;
+    border:1px solid var(--border);background:var(--bg);color:var(--fg);
+    cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s;flex-shrink:0}
+  .mini-btn:hover{background:var(--primary-soft);border-color:var(--primary)}
+  .mini-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .mini-btn.primary:hover{filter:brightness(1.08);background:var(--primary)}
+  .mini-btn.copied{background:var(--success);color:#fff;border-color:var(--success)}
+
+  .hint{text-align:center;color:var(--muted);font-size:14px;padding:56px 24px;
+    border:1px dashed var(--border);border-radius:var(--radius);background:var(--card)}
+
+  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);
+    background:var(--fg);color:var(--bg);padding:10px 22px;border-radius:9px;
+    font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:999}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:640px){
+    .row{flex-wrap:wrap}
+    .row-main{flex-basis:100%}
+    .detect-url{flex-wrap:wrap}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-title">GitHub-Sped-Aggregation-Station</div>
+        <div class="logo-sub">GitHub CDN 下载 &amp; Git Clone 镜像聚合</div>
+      </div>
+    </div>
+    <button class="theme-btn" id="themeToggle">🌓 主题</button>
+  </header>
+
+  <section class="input-section">
+    <div class="input-row">
+      <input type="text" id="urlInput" spellcheck="false"
+             placeholder="粘贴 GitHub 链接：Raw / 文件页 / Release / 仓库 / .git">
+      <button class="btn btn-primary" id="convertBtn">解析并加速</button>
+    </div>
+   
+  </section>
+
+  <div id="resultArea">
+    <div class="hint">
+      粘贴 GitHub 链接后点击「解析并加速」。<br>
+      CDN 下载链接与 Git Clone 链接同时生成。
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+const CDN_MIRRORS = [
+  { name:'jsDelivr',        kind:'jsdelivr',   note:'GitHub 静态资源 CDN，单文件 ≤20MB' },
+  { name:'raw.githack.com', kind:'githack',    note:'Raw 文件 CDN' },
+  { name:'statically.io',   kind:'statically', note:'Raw 文件 CDN' },
+];
+
+const PROXY_MIRRORS = [
+  { name:'gh-proxy.com',        prefix:'https://gh-proxy.com/',        note:'支持批量 / Release / Archive' },
+  { name:'ghproxy.net',         prefix:'https://ghproxy.net/',         note:'自动识别类型，支持断点续传' },
+  { name:'ghfast.top',          prefix:'https://ghfast.top/',          note:'公益镜像' },
+  { name:'ghproxy.homeboyc.cn', prefix:'https://ghproxy.homeboyc.cn/', note:'大体积 Release 稳定' },
+  { name:'moeyy.cn/gh-proxy',   prefix:'https://moeyy.cn/gh-proxy/',   note:'支持命令行及下载' },
+  { name:'ghp.ci',              prefix:'https://ghp.ci/',              note:'简单快捷' },
+  { name:'ghps.cc',             prefix:'https://ghps.cc/',             note:'公益镜像' },
+  { name:'github.akams.cn',     prefix:'https://github.akams.cn/',     note:'资源类型丰富' },
+  { name:'gh-proxy.org',        prefix:'https://gh-proxy.org/',        note:'经典公益镜像' },
+  { name:'v4.gh-proxy.org',     prefix:'https://v4.gh-proxy.org/',     note:'gh-proxy v4' },
+  { name:'cdn.gh-proxy.org',    prefix:'https://cdn.gh-proxy.org/',    note:'gh-proxy CDN' },
+];
+
+const CLONE_MIRRORS = [
+  { name:'gitclone.com',   mode:'prefix-strip', prefix:'https://gitclone.com/', note:'Clone 加速专用' },
+  { name:'hub.nuaa.cf',    mode:'host', host:'hub.nuaa.cf',     note:'域名替换型' },
+  { name:'githubfast.com', mode:'host', host:'githubfast.com',  note:'域名替换型' },
+];
+
+const $ = (s) => document.querySelector(s);
+
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+const escapeAttr = escapeHTML;
+
+function parseGitHubUrl(raw) {
+  let s = (raw || '').trim();
+  if (!s) return null;
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+
+  let u;
+  try { u = new URL(s); } catch { return null; }
+
+  const host = u.hostname.toLowerCase();
+  const seg = u.pathname.split('/').filter(Boolean);
+
+  if (host === 'raw.githubusercontent.com') {
+    if (seg.length < 4) return null;
+    return {
+      kind: 'raw', user: seg[0], repo: seg[1],
+      ref: seg[2], file: seg.slice(3).join('/'), original: s,
+    };
+  }
+
+  if (host === 'gist.githubusercontent.com' || host === 'gist.github.com') {
+    return { kind: 'gist', original: s };
+  }
+
+  if (host !== 'github.com' && !host.endsWith('.github.com')) return null;
+
+  if (seg.length >= 5 && seg[2] === 'releases' && seg[3] === 'download') {
+    return {
+      kind: 'release', user: seg[0], repo: seg[1],
+      tag: seg[4], file: seg.slice(5).join('/'), original: s,
+    };
+  }
+
+  if (seg.length >= 3 && seg[2] === 'archive') {
+    return { kind: 'archive', user: seg[0], repo: seg[1], original: s };
+  }
+
+  if (seg.length >= 5 && (seg[2] === 'blob' || seg[2] === 'raw')) {
+    return {
+      kind: 'blob', user: seg[0], repo: seg[1],
+      ref: seg[3], file: seg.slice(4).join('/'), original: s,
+    };
+  }
+
+  if (seg.length === 2 && seg[1].endsWith('.git')) {
+    return {
+      kind: 'repo', user: seg[0], repo: seg[1].replace(/\.git$/, ''), original: s,
+    };
+  }
+
+  if (seg.length === 2) {
+    return { kind: 'repo', user: seg[0], repo: seg[1], original: s };
+  }
+
+  return null;
+}
+
+function buildCdnLinks(parsed) {
+  if (!parsed.user || !parsed.repo) return [];
+
+  const user = parsed.user;
+  const repo = parsed.repo;
+  let ref = 'main';
+  let file = '';
+
+  if (parsed.kind === 'raw' || parsed.kind === 'blob') {
+    ref = parsed.ref;
+    file = parsed.file;
+  }
+
+  return CDN_MIRRORS.map(m => {
+    let url = '';
+    if (m.kind === 'jsdelivr')   url = `https://cdn.jsdelivr.net/gh/${user}/${repo}@${ref}/${file}`;
+    if (m.kind === 'githack')    url = `https://raw.githack.com/${user}/${repo}/${ref}/${file}`;
+    if (m.kind === 'statically') url = `https://cdn.statically.io/gh/${user}/${repo}/${ref}/${file}`;
+    return { ...m, url };
+  }).filter(x => x.url);
+}
+
+function buildProxyDownloadLinks(parsed) {
+  let fileUrl = null;
+  if (parsed.kind === 'raw') {
+    fileUrl = parsed.original;
+  } else if (parsed.kind === 'blob') {
+    fileUrl = `https://raw.githubusercontent.com/${parsed.user}/${parsed.repo}/${parsed.ref}/${parsed.file}`;
+  } else if (parsed.kind === 'release' || parsed.kind === 'archive') {
+    fileUrl = parsed.original;
+  }
+  if (!fileUrl) return [];
+  return PROXY_MIRRORS.map(m => ({ ...m, url: m.prefix + fileUrl }));
+}
+
+function buildCloneLinks(parsed) {
+  if (!parsed.user || !parsed.repo) return [];
+  const repoUrl = `https://github.com/${parsed.user}/${parsed.repo}.git`;
+  return CLONE_MIRRORS.map(m => {
+    let url = '';
+    if (m.mode === 'prefix-strip') {
+      url = m.prefix + repoUrl.replace(/^https?:\/\//, '');
+    } else if (m.mode === 'host') {
+      try {
+        const u = new URL(repoUrl);
+        u.hostname = m.host;
+        url = u.toString();
+      } catch { url = ''; }
+    }
+    return { ...m, url };
+  }).filter(x => x.url);
+}
+
+function buildProxyCloneLinks(parsed) {
+  if (!parsed.user || !parsed.repo) return [];
+  const repoUrl = `https://github.com/${parsed.user}/${parsed.repo}.git`;
+  return PROXY_MIRRORS.map(m => ({ ...m, url: m.prefix + repoUrl }));
+}
+
+const KIND_LABEL = {
+  repo: '仓库', blob: '文件页 → Raw', raw: 'Raw 文件',
+  release: 'Release 资产', archive: '源码归档', gist: 'Gist',
+};
+
+let currentParsed = null;
+let downloadRows = [];
+let cloneRows = [];
+
+function render() {
+  const area = $('#resultArea');
+
+  if (!currentParsed) {
+    area.innerHTML = `<div class="hint">
+      粘贴 GitHub 链接后点击「解析并加速」。<br>
+      CDN 下载链接与 Git Clone 链接同时生成。
+    </div>`;
+    return;
+  }
+
+  if (currentParsed.kind === 'gist') {
+    area.innerHTML = `<div class="hint">
+      Gist 暂不支持。<br>
+      请使用 gist.githubusercontent.com 的 Raw 文件链接。
+    </div>`;
+    return;
+  }
+
+  const parts = [];
+
+  const kindLabel = KIND_LABEL[currentParsed.kind] || '资源';
+  const nameText = `${currentParsed.user}/${currentParsed.repo}`;
+  let arrowHTML = '';
+  if (currentParsed.kind === 'blob') {
+    const rawUrl = `https://raw.githubusercontent.com/${currentParsed.user}/${currentParsed.repo}/${currentParsed.ref}/${currentParsed.file}`;
+    arrowHTML = `<div class="detect-arrow">↳ 已转换为 Raw：<code>${escapeHTML(rawUrl)}</code></div>`;
+  }
+
+  parts.push(`
+    <div class="detect-card">
+      <div class="detect-head">
+        <span class="kind-badge">${kindLabel}</span>
+        <span class="detect-title">${escapeHTML(nameText)}</span>
+      </div>
+      <div class="detect-url">
+        <span>${escapeHTML(currentParsed.original)}</span>
+        <button class="mini-btn" data-copy="${escapeAttr(currentParsed.original)}">复制</button>
+      </div>
+      ${arrowHTML}
+    </div>
+  `);
+
+  downloadRows = [
+    ...buildCdnLinks(currentParsed),
+    ...buildProxyDownloadLinks(currentParsed),
+  ];
+  if (downloadRows.length) parts.push(renderDownloadGroup());
+
+  cloneRows = [
+    ...buildCloneLinks(currentParsed),
+    ...buildProxyCloneLinks(currentParsed),
+  ];
+  if (cloneRows.length) parts.push(renderCloneGroup());
+
+  area.innerHTML = parts.join('');
+}
+
+function renderDownloadGroup() {
+  const rowsHTML = downloadRows.map(r => {
+    const isCdn = r.kind === 'jsdelivr' || r.kind === 'githack' || r.kind === 'statically';
+    const badge = isCdn ? '<span class="badge t-cdn">CDN</span>' : '<span class="badge t-proxy">代理</span>';
+    return `
+      <div class="row">
+        ${badge}
+        <div class="row-main">
+          <div class="row-name">${escapeHTML(r.name)}<span class="row-note">${escapeHTML(r.note || '')}</span></div>
+          <div class="row-url">${escapeHTML(r.url)}</div>
+        </div>
+        <button class="mini-btn primary" data-open="${escapeAttr(r.url)}">下载</button>
+        <button class="mini-btn" data-copy="${escapeAttr(r.url)}">复制</button>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <section class="group">
+      <div class="group-head">
+        <div class="group-title">
+          📥 CDN &amp; 下载
+          <span class="group-sub">${escapeHTML(currentParsed.file || (currentParsed.kind === 'archive' ? '源码归档' : '仓库'))}</span>
+        </div>
+        <div class="group-actions">
+          <span class="count">${downloadRows.length} 个节点</span>
+          <button class="mini-btn" data-copy-group="download">复制全部</button>
+        </div>
+      </div>
+      <div class="rows">${rowsHTML}</div>
+    </section>
+  `;
+}
+
+function renderCloneGroup() {
+  const rowsHTML = cloneRows.map(r => {
+    const isDirect = r.mode === 'prefix-strip' || r.mode === 'host';
+    const badge = isDirect ? '<span class="badge t-git">Clone</span>' : '<span class="badge t-proxy">代理</span>';
+    const cmd = `git clone ${r.url}`;
+    return `
+      <div class="row">
+        ${badge}
+        <div class="row-main">
+          <div class="row-name">${escapeHTML(r.name)}<span class="row-note">${escapeHTML(r.note || '')}</span></div>
+          <code class="cmd">${escapeHTML(cmd)}</code>
+        </div>
+        <button class="mini-btn" data-copy="${escapeAttr(cmd)}">复制命令</button>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <section class="group">
+      <div class="group-head">
+        <div class="group-title">
+          ⚡ Git Clone
+          <span class="group-sub">${escapeHTML(currentParsed.user + '/' + currentParsed.repo)}</span>
+        </div>
+        <div class="group-actions">
+          <span class="count">${cloneRows.length} 个节点</span>
+          <button class="mini-btn" data-copy-group="clone">复制全部命令</button>
+        </div>
+      </div>
+      <div class="rows">${rowsHTML}</div>
+    </section>
+  `;
+}
+
+function doConvert() {
+  const raw = $('#urlInput').value.trim();
+  if (!raw) { toast('请先粘贴 GitHub 链接'); return; }
+
+  const parsed = parseGitHubUrl(raw);
+  if (!parsed) {
+    toast('无法识别的链接，请检查是否为 GitHub 地址');
+    return;
+  }
+
+  currentParsed = parsed;
+  render();
+
+  if (parsed.kind === 'gist') {
+    toast('Gist 暂不支持');
+  } else {
+    toast('已同时生成 CDN 与 Clone 链接');
+  }
+}
+
+$('#convertBtn').addEventListener('click', doConvert);
+
+$('#urlInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doConvert();
+});
+
+$('#urlInput').addEventListener('paste', () => {
+  setTimeout(doConvert, 60);
+});
+
+$('#resultArea').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  if (btn.dataset.copy) {
+    const ok = await copyText(btn.dataset.copy);
+    if (ok) {
+      const orig = btn.textContent;
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 1400);
+    } else {
+      toast('复制失败，请手动选择文本');
+    }
+    return;
+  }
+
+  if (btn.dataset.copyGroup) {
+    const group = btn.dataset.copyGroup;
+    let lines = [];
+    if (group === 'download') {
+      lines = downloadRows.map(r => r.url);
+    } else if (group === 'clone') {
+      lines = cloneRows.map(r => `git clone ${r.url}`);
+    }
+    if (!lines.length) { toast('没有可复制的链接'); return; }
+    const ok = await copyText(lines.join('\n'));
+    toast(ok ? `已复制 ${lines.length} 条` : '复制失败');
+    return;
+  }
+
+  if (btn.dataset.open) {
+    window.open(btn.dataset.open, '_blank', 'noopener');
+  }
+});
+
+const THEME_KEY = 'sas-theme';
+function applyTheme(mode) {
+  if (mode === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  else document.documentElement.removeAttribute('data-theme');
+}
+applyTheme(localStorage.getItem(THEME_KEY) || '');
+
+$('#themeToggle').addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem(THEME_KEY, next);
+});
+</script>
+</body>
+</html>
